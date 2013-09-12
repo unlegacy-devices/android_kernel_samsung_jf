@@ -285,14 +285,11 @@
 #define LONGS(x) (((x) + sizeof(unsigned long) - 1)/sizeof(unsigned long))
 
 /*
- * To allow fractional bits to be tracked, the entropy_count field is
- * denominated in units of 1/8th bits.
+ * To allow fractional bits to be tracked, the following fields contain
+ * this many fractional bits:
  *
-<<<<<<< HEAD
-=======
  * entropy_count, trickle_thresh
  *
->>>>>>> 210a468024f (random: account for entropy loss due to overwrites)
  * 2*(ENTROPY_SHIFT + log2(poolbits)) must <= 31, or the multiply in
  * credit_entropy_bits() needs to be 64 bits wide.
  */
@@ -725,12 +722,17 @@ struct timer_rand_state {
 void add_device_randomness(const void *buf, unsigned int size)
 {
 	unsigned long time = get_cycles() ^ jiffies;
+	unsigned long flags;
 
-	trace_add_device_randomness(size, _RET_IP_);
-	mix_pool_bytes(&input_pool, buf, size, NULL);
-	mix_pool_bytes(&input_pool, &time, sizeof(time), NULL);
-	mix_pool_bytes(&nonblocking_pool, buf, size, NULL);
-	mix_pool_bytes(&nonblocking_pool, &time, sizeof(time), NULL);
+	spin_lock_irqsave(&input_pool.lock, flags);
+	_mix_pool_bytes(&input_pool, buf, size, NULL);
+	_mix_pool_bytes(&input_pool, &time, sizeof(time), NULL);
+	spin_unlock_irqrestore(&input_pool.lock, flags);
+
+	spin_lock_irqsave(&nonblocking_pool.lock, flags);
+	_mix_pool_bytes(&nonblocking_pool, buf, size, NULL);
+	_mix_pool_bytes(&nonblocking_pool, &time, sizeof(time), NULL);
+	spin_unlock_irqrestore(&nonblocking_pool.lock, flags);
 }
 EXPORT_SYMBOL(add_device_randomness);
 
@@ -1136,7 +1138,6 @@ static ssize_t extract_entropy_user(struct entropy_store *r, void __user *buf,
  */
 void get_random_bytes(void *buf, int nbytes)
 {
-	trace_get_random_bytes(nbytes, _RET_IP_);
 	extract_entropy(&nonblocking_pool, buf, nbytes, 0, 0);
 }
 EXPORT_SYMBOL(get_random_bytes);
@@ -1155,7 +1156,7 @@ void get_random_bytes_arch(void *buf, int nbytes)
 {
 	char *p = buf;
 
-	trace_get_random_bytes_arch(nbytes, _RET_IP_);
+	trace_get_random_bytes(nbytes, _RET_IP_);
 	while (nbytes) {
 		unsigned long v;
 		int chunk = min(nbytes, (int)sizeof(unsigned long));
