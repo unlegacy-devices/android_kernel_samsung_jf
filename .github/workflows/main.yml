@@ -19,7 +19,7 @@ jobs:
       run: |
         export KBUILD_BUILD_USER=notnoelchannel
         export KBUILD_BUILD_HOST=unlegacy-devices
-        make -j22 ARCH=arm lineageos_jf_defconfig
+        make -j22 ARCH=arm VARIANT_DEFCONFIG=jf_eur_defconfig lineageos_jf_defconfig
         make -j128
     - name: Moving Output # CI only
       run: |
