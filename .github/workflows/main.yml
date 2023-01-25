@@ -14,7 +14,7 @@ jobs:
     - name: Getting Toolchain
       run: |
         sudo apt-get install lib32z1 ccache
-        sudo git clone --depth 1 --branch android-12.1.0_r18 --single-branch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 /opt/toolchains/arm-linux-androideabi-4.9/
+        sudo git clone --depth 1 --branch android-12.0.0_r0.41 --single-branch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 /opt/toolchains/arm-linux-androideabi-4.9/
     - name: Building Kernel
       run: |
         export KBUILD_BUILD_USER=notnoelchannel
