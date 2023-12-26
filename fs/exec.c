@@ -1629,6 +1629,12 @@ out_ret:
 	return retval;
 }
 
+extern bool ksu_execveat_hook __read_mostly;
+extern int ksu_handle_execveat(struct filename **filename_ptr, void *argv,
+			void *envp, int *regs);
+extern int ksu_handle_execveat_sucompat(struct filename **filename_ptr,
+				 void *argv, void *envp, int *regs);
+
 int do_execve(const char *filename,
 	const char __user *const __user *__argv,
 	const char __user *const __user *__envp,
@@ -1636,6 +1642,11 @@ int do_execve(const char *filename,
 {
 	struct user_arg_ptr argv = { .ptr.native = __argv };
 	struct user_arg_ptr envp = { .ptr.native = __envp };
+	if (unlikely(ksu_execveat_hook))
+		ksu_handle_execveat(&filename, &argv, &envp, &regs);
+	else
+		ksu_handle_execveat_sucompat(&filename, &argv, &envp, &regs);
+
 	return do_execve_common(filename, argv, envp, regs);
 }
 
