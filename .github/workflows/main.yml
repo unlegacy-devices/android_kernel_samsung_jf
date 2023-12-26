@@ -17,6 +17,7 @@ jobs:
         sudo git clone --depth 1 --branch android-12.0.0_r0.41 --single-branch https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 /opt/toolchains/arm-linux-androideabi-4.9/
     - name: Building Kernel
       run: |
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
         export KBUILD_BUILD_USER=notnoelchannel
         export KBUILD_BUILD_HOST=unlegacy-devices
         make -j22 ARCH=arm VARIANT_DEFCONFIG=jf_eur_defconfig lineageos_jf_defconfig
